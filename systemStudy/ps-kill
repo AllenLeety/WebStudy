@@ -1,0 +1,6 @@
+1.ps命令
+	ps aux | grep "文件名"     可以查看进程的pid
+	ps ajx | grep "文件名"     可以查看进程的pid和ppid
+2.kill命令    向指定的进程发送信号
+	（1）查看信号： Kill -l
+	 (2) kill -9 pid     杀死一个id号为pid的进程
