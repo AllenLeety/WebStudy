@@ -10,4 +10,47 @@
 	爹生孩子
 	孩子死了，爹还活着，爹不去释放子进程的pcb，孩子就变成了僵尸进程。
 	是一个已经死掉的进程
+3. 进程回收
+	wait和waitpid出现的原因：
+		当子进程退出的时候，内核会向父进程发送SIGCHLD信号，子进程的退出是个异步事件（子进程可以在父进程运行的任何时刻终止）。
+		子进程退出时，内核将子进程置为僵尸状态，这个进程称为僵尸进程，它只保留最小的一些内核数据结构，以便父进程查询子进程的退出状态。
+		父进程查询子进程的退出状态可以用wait/waitpid函数。
+（1）wait   阻塞函数
+	pid_t wait(int* status);
+    a. 头文件
+      <sys/types.h>和<sys/wait.h>
+		b.返回值：
+			-1：回收失败，已经没有子进程了
+			>0：回收是子进程对应的pid
+		c.参数：status
+			判断子进程是如何死的
+				正常退出
+				被某个信号杀死了
+		d.调用一次只能回收一个子进程
+    e.wait获取status后检测处理
+      宏定义          描述
+  WIFEXITED(status)   如果子进程正常结束，返回一个非零值
+    WEXITSTATUS(status) 如果WIFEXITED非零，返回子进程退出码
+  WIFSIGNALED(status) 子进程因为捕获信号而终止，返回非零值
+    WTERMSIG(status)    如果WIFSIGNALED非零，返回信号代码
+  WIFSTOPPED(status)  如果子进程被暂停，返回一个非零值
+    WSTOPSIG(status)    如果WIFSTOPPED非零，返回一个信号代码
+ (2) waitpid
+  pid_t waitpid(pid_t pid, int* status, int options)
+    a.函数功能：用来等待某个特定进程的结束
+    b.参数
+      pid
+        pid==-1 等待人以子进程，与wait等效
+        pid>0   等待其进程ID与pid相等的子进程
+        pid==0  等待其组ID等于调用进程的组ID的任一子进程，换句话说是与调用者进程同在一个组的进程
+        pid<-1  等待其组ID等于pid的绝对值的任一子进程
+      status
+        子进程的退出状态，用法同wait函数
+      options
+        设置为WNOHANG，函数非阻塞，设置为0，函数阻塞
+    c.返回值
+      >0  返回清理掉的子进程ID
+      -1  无子进程
+      =0  参数3为WNOHANG，且子进程正在运行。
+
 
