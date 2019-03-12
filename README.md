@@ -1,18 +1,6 @@
-# 一级标题
+# Linux服务器相关知识
 
-## 二级标题
-
-make  make
-
-===第二次修改
-
-先pull再push
-
-<<<<<<< HEAD
-本地个it上设置内容
-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-GitHub服务器端修改的内容
-Git GitHub
+## 一、GitHub使用
 1.GitHub上传一个文件：
 （1）git init         初始化一个./git来管理本地git
 （2）git add 文件名
@@ -26,3 +14,5 @@ Git GitHub
 （4）git add 文件名
 （5）git commit 文件名 -m "文件详细描述"
 （6）git push -u origin master
+##二、systemStudy为系统编程相关知识
+
