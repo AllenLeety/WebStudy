@@ -50,4 +50,38 @@
           write阻塞
       缓冲区没有满
           write继续写
+  （3）如何设置非阻塞？
+      管道莫认识读写两端都阻塞
+      设置读端为非阻塞pipe(fd)
+        fcntl -- 变参函数
+          复制文件文件描述符--dup
+          修改文件属性--open的时候对应flag属性
+        设置方法：
+          获取原来的flags
+          int flags = fcntl(fd[0], F_GETFL);//F_GETFL为获取flag属性
+          //设置新的flags
+          flags |= O_NOBLOCK;//等价于flags = flags | O_NONBLOCK;
+          fcntl(fd[0], F_SETFL, flags);
+6 fifo管道（命名管道）
+  管道应用的一个限制就是只能在具有共同祖先（具有血缘关系）的进程见通信。
+  如果我们想在不相关的进程之间交换数据，可以使用FIFO文件来做这项工作，他经常被称为命名管道。
+  命名管道是一种特殊类型的文件。
+（1）特点
+    有名管道
+    在磁盘上有这样一个文件 ls -|  -> p  即ls -| 可以查到pipe
+    是伪文件，在磁盘大小永远为0
+    在内核中有一个对应的缓冲区
+    半双工的通信方式
+（2）使用场景
+    没有血缘关系的进程间通信
+（3）创建方式
+    a.从命令行上创建
+        输入 mkfifo filename
+    b.从程序李创建
+        int mkfifo(const char *pathname, mode_t mode);
+        可以man 3 mkfifo查询
+7 匿名管道与命名管道比较
+    匿名管道由pipe函数创建并打开
+    命名管道由mkfifo函数创建，打开用open
+    FIFO（命名管道）与pipe（匿名管道）之间唯一的区别在他们创建与打开的方式不同，一旦这些工作完成之后，他们具有相同的语义
 
