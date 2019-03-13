@@ -1,0 +1,8 @@
+进程间通信（IPC）InterProcess Communication
+1.什么是IPC
+  进程间通信 Interrocess Communication
+2.进程间通信常用的4种方式
+  a.管道--      简单
+  b.信号--      系统开销小
+  c.共享映射区--有无血缘关系的进程间通信都可以
+  d.本地套接字--稳定
