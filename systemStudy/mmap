@@ -1,0 +1,43 @@
+内存映射区
+1 mmap--创建内存映射
+    作用：将磁盘文件的数据映射到内存，用户通过修改内存就能修改磁盘文件
+    函数原型：
+      void *mmap(
+        void *adrr,     //  映射区首地址，传NULL
+        size_t length,  //  映射区的大小
+            100byte --> 也必须用4k来表示，因为最小单位为4k
+            不能为0
+            一般文件多大，length就指定多大
+        int prot,       //映射区权限
+            PROT_READ  -->映射区必须要有读权限
+            PROT_WRITE
+        int flags,      //标志位参数
+            MAP_SHARED
+              修改了内存数据会同步到磁盘
+            MAP_PRIVATE
+              修改了内存数据不会同步到磁盘
+        int fd,         //文件描述符
+              干嘛的文件描述符？
+                要映射的文件对应的fd
+              怎么得到？
+                open()
+        off_t offset    //映射文件的偏移量
+              映射的时候文件指针的偏移量
+                必须是4k的整数倍
+                一般指定为0
+);
+  返回值：  调用成功--->返回映射区的首地址
+            调用失败--->返回MAP_FAILED，其实是(void *) -1
+2 munmap --释放内存映射区
+  函数原型：int munmap(void* addr, size_t length);
+    addr  --- mmap的返回值，映射区的首地址
+    length--- mmap的第二个参数，映射区的长度
+3 mmap什么情况下会调用失败？
+    第二个参数length=0；
+    第三个参数必须指定PROT_READ
+        fd对应的打开权限必须大于等于port权限
+    偏移量：必须是4096的整数倍
+4 父子进程永远共享的东西？
+    文件描述符
+    内存映射区
+
