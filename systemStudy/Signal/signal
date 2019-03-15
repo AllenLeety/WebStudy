@@ -32,5 +32,34 @@
           函数原型：unsigned int alarm(unsigned int seconds);
             参数：秒
             当时间到达之后，函数发出一个信号：SIGALRM
-         
-  
+              告诉linux内核n秒以后，发送SIGALARM信号 
+（4）setitimer---定时器，并实现周期性定时
+     函数原型：
+        int setitimer(int which, const struct itimerval* new_value,
+                      struct itimerval* old_value //NUll);
+        struct itimerval{
+                     struct timeval it_interval; //定时器循环周期
+                     struct timeval it_value; //第一次触发定时器的时间
+                    }；
+        struct timeval{
+                     time_t tv_sec; //seconds
+                     suseconds_t tv_usec; //microseconds
+                      };
+4 信号集
+（1）概念
+    未决信号集：没有被当前进程处理的信号
+    阻塞信号集：将某个信号放到阻塞信号集，这个信号就不会被进程处理；
+                阻塞解除之后，信号被处理。
+（2）自定义信号集
+    int sigemptyset(sigset_t *set);  将set集合置空
+    int sigfillset(sigset_t *set);  将所有信号加入set集合
+    int sigaddset(sigset_t *set, int signo); 将signo信号加入到set集合
+    int sigdelset(sigset_t *set, int signo); 从set集合中一处signo信号
+    int sigismember(const sigset_t *set, int signo); 判断信号是否存在
+（3）sigprocmask函数
+    屏蔽and解除信号屏蔽，将自定义信号集设置给阻塞信号集
+    函数原型：int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+（4）sigending ---读取当前进程的未决信号集
+    函数原型：int sigpending(sigset_t *set);
+    参数：set--内核将未决信号集楔入set
+5 信号捕捉
