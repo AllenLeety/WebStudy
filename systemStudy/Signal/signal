@@ -63,3 +63,20 @@
     函数原型：int sigpending(sigset_t *set);
     参数：set--内核将未决信号集楔入set
 5 信号捕捉
+(1)signal函数
+    typedef void (*sighandler_t)(int);
+    sighandler_t signal(int signum, sighandler_t handler);
+(2)sigaction函数
+    函数原型：
+        int sigaction(int signum,//捕捉的信号
+                      const struct sigaction *act,
+                      struct sigaction *oldact);
+        struct sigaction{
+              void (*sa_handler)(int);
+              void (*sa_sigaction)(int,siginfo_t*,void*);
+              sigset_t sa_mask;
+                //在信号处理函数执行过程中，临时屏蔽指定的信号
+              int sa_flags;
+                //0-sa_handler
+              void (*sa_restorer)(void);
+              };
