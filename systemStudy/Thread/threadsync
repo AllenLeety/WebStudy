@@ -1,0 +1,54 @@
+线程同步
+1 互斥量（互斥锁）
+  （1）互斥锁类型：
+        创建一把锁：pthread_mutex_t mutex;
+  （2）互斥锁的使用步骤：
+        创建互斥锁：pthread_mutex_t mutex;
+        初始化：pthread_mutex_init(&mutex, NULL);
+        找到线程同步操作的共享数据
+            加锁：pthread_mutex_lock(&mutex);//阻塞线程
+            pthread_mutex_trylock(&mutex);//如果锁上锁，直接返回，不阻塞
+                            共享数据操作
+            解锁：pthread_mutex_unlock(&mutex);
+                      阻塞在锁上的线程会被唤醒
+        销毁：pthread_mutex_destroy(&mutex);
+  （3）互斥锁相关函数
+        初始化互斥锁
+            pthread_mutex_init(
+              pthread_mutex_t* restrictmutex;
+              const pthread_mutexattr_t* restrictattr;
+            );
+        销毁互斥锁
+            pthread_mutex_destroy(pthread_mutex_t* mutex);
+        加锁
+            pthread_mutex_lock(pthread_mutex_t* mutex);
+                  mutex：
+                    没有被上锁，当前线程会将这把锁锁上
+                    被锁上了：当前线程阻塞
+                        锁被打开之后，线程解除阻塞
+        尝试加锁，失败返回，不阻塞
+            pthread_mutex_trylock(pthread_mutex_t *mutex);
+                    没有锁上：当前线程会给这把锁加锁
+                    如果锁上了：不会阻塞，返回
+                    if(pthread_mutex_trylock(&mutex)==0)
+                    {
+                        //尝试加锁，并且成功了
+                        //访问共享资源
+                    }
+                    else
+                    {
+                        //错误处理
+                        //或者等一会，再次尝试加锁
+                    }
+        解锁
+            pthread_mutex_unlock(pthread_mutex_t* mutex);
+  如果我们向使用互斥锁同步线程：所有的线程都需要加锁
+  （4）互斥锁的特点：
+          多个线程访问共享数据的时候是串行的
+  （5）使用互斥锁缺点
+          效率低
+2 原子操作
+    cpu处理一个指令，线程/进程在处理完这个指令之前是不会失去cpu的
+3 死锁
+    造成死锁的原因：
+      自己锁自己

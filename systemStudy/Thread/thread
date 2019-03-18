@@ -1,0 +1,81 @@
+线程
+1 什么是线程
+  在一个程序里的一个执行路线就叫做线程（thread）。更准确的定义是：线程是“一个进程内部的控制序列”
+  一切进程至少都有一个执行线程
+2 进程与线程
+  进程是资源竞争的基本单位
+  线程是程序执行的最小单位
+  线程共享进程数据，但也拥有自己的一部分数据
+    线程ID/程序计数器/寄存器组/栈/errno
+  一个进程内部的线程可以共享资源
+    代码段/数据段/打开文件和信号
+3 pthread_create创建线程
+  创建线程之后，地址空间没有变化，进程退化成了线程，也叫主线程
+  创建出的子线程和主线程共用地址空间
+  主线程和子线程有各自独立的pcb，子线程的pcb是从主线程拷贝来的
+    主线程和子线程：
+      共享：
+          .text/.bss/.data/堆/动态库加载区/环境变量/命令行参数/通信：全局变量，堆
+      不共享：
+          栈     
+
+  在linux下，线程就是进程---轻量级进程
+             对于内核来说，线程就是进程
+    多线程和多进程区别：
+      多进程：始终共享的资源：代码/文件描述符/内存映射区
+      多线程：线程共享：堆/全局变量
+              线程节省资源
+函数原型：
+  //如果成功返回0，失败返回错误号
+  //perror()不能使用该函数打印错误信息
+int pthread_create(
+    pthread_t *thread,  //线程ID=无符号长整形
+    const pthread_attr_t *attr, //线程属性，NULL
+    void*(*start_routine)(void*), //线程处理函数
+    void* arg  //线程处理函数参数
+);
+  参数：
+      thread：传出参数，线程创建成功之后，会被设置一个合适的值
+      attr：默认传NULL
+      start_routine：子线程的处理函数
+      arg：回调函数的参数
+主线程先退出，子线程会被强制结束
+验证线程之间共享全局变量
+4 单个线程退出 ---pthread_exit
+  函数原型：void pthread_exit(void *retval);
+      retval必须指向全局变量或堆，不要指向一个局部变量
+5 阻塞等待线程退出，获取线程退出状态---pthread_join
+  函数原型：
+      int pthread_join(pthread_t thread, void **retval);
+        thread：要回收的子线程的线程id
+        retval：读取线程退出的时候携带的状态信息
+            传出参数
+            void* ptr
+            pthread_join(pthid, &ptr);
+            指向的内存和pthread_exit参数指向同一块内存地址
+6 线程分离---pthread_detach
+  函数原型：int pthread_detach(pthread_t thread);
+  调用该函数之后不需要pthread_join
+  子线程会自动回收自己的pcb
+7 杀死（取消）线程---pthread_cancel
+  函数原型：int pthread_cancel(pthread_t thread);
+  使用注意事项：
+      在要杀死的子线程对应的处理的函数的内部，必须做过一次系统调用。
+      pthread_testcancel();//查看是否做过系统调用
+8 通过属性设置线程的分离
+  （1）线程属性类型：pthread_attr_t attr;
+  （2）线程属性操作函数：
+       对线程属性变量的初始化
+          int pthread_attr_init(pthread_attr_t *attr);
+       设置线程分离属性
+          int pthread_attr_setdetachstate(
+              pthread_attr_t* attr;
+              int detachstate
+          );
+       参数：
+          attr:线程属性
+          detachstate：
+              PTHREAD_CREATE_DETACHED（分离）
+              PTHREAD_CREATE_JOINABLE（非分离）
+  （3）释放线程资源函数
+       int pthread_attr_destory(pthread_attr_t *attr);
