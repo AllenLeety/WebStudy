@@ -79,3 +79,4 @@ int pthread_create(
               PTHREAD_CREATE_JOINABLE（非分离）
   （3）释放线程资源函数
        int pthread_attr_destory(pthread_attr_t *attr);
+

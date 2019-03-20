@@ -15,8 +15,8 @@
   （3）互斥锁相关函数
         初始化互斥锁
             pthread_mutex_init(
-              pthread_mutex_t* restrictmutex;
-              const pthread_mutexattr_t* restrictattr;
+              pthread_mutex_t* restrict mutex;
+              const pthread_mutexattr_t* restrict attr;
             );
         销毁互斥锁
             pthread_mutex_destroy(pthread_mutex_t* mutex);
@@ -52,3 +52,127 @@
 3 死锁
     造成死锁的原因：
       自己锁自己
+4 读写锁
+  （1）读写锁是几把锁
+          一把锁/pthread_rwlock_t lock;
+  （2）读写锁的类型：
+          读锁---对内存作读操作
+          写锁---对内存作写操作
+  （3）读写锁的特性
+        线程A加读锁成功，又来了三个线程，做读操作，可以加锁成功
+          读共享---并行处理
+        线程A加写锁成功，又来了三个线程，做读操作，三个线程阻塞
+          写独占
+        线程A加读锁成功，又来了B线程加写锁阻塞，又来了C线程加读锁阻塞
+          读写不能同时，写的优先级高
+  （4）练习
+      线程A加写锁成功，线程B请求读锁
+        线程B阻塞
+      线程A持有读锁，线程B请求写锁
+        线程B阻塞
+      线程A拥有读锁，线程B请求读锁
+        线程B加锁哦成功
+      线程A持有读锁，然后线程B请求写锁，然后线程C请求读锁
+        B阻塞，C阻塞---写的优先级高
+        A解锁，B线程加写锁成功，C继续阻塞
+        B解锁，C加读锁成功
+      线程A持有写锁，然后线程B请求读锁，然后线程C请求写锁
+        BC阻塞
+        A解锁，C加写锁成功，B继续阻塞
+        C解锁，B加读锁成功
+  （5）读写锁的适用场景
+        互斥锁---读写串行
+        读写锁---读并行，写串行
+        程序中的读操作大于写操作的时候用读写锁
+  （6）主要操作函数
+        初始化读写锁
+            pthread_rwlock_init(
+                   pthread_rwlock_t *restrict rwlock,
+                   const pthread_rwlockattr_t *restrict attr
+            );
+        销毁读写锁
+            pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
+        加读锁
+            pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
+              在加读锁之前如果对这把锁加的写锁操作，则会加读锁阻塞
+        尝试加读锁
+            pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock);
+              返回值：加锁成功返回0，加锁失败返回错误号
+        加写锁
+            pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
+              上一次加锁为写锁，还没有解锁的时候，加写锁会失败
+              上一次加锁为读锁，还没有解锁的时候，加写锁会失败
+        尝试加写锁
+            pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock);
+        解锁
+            pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
+5 条件变量
+  （1）条件变量是锁吗？
+        不是锁，但是条件变量能够阻塞线程
+        条件变量是用来等待而不是用来上锁的。条件变量用来自动阻塞一个线程，直到某特殊情况发生为止。通常条件变量和互斥锁同时使用。
+        条件变量使我们可以睡眠等待某种条件出现。条件变量是利用线程间共享的全局变量进行同步的一种机制，主要包括两个动作：一个线程等待“条件变量的条件成立”而挂起；另一个线程使“条件成立”（给出条件成立信号）。
+        条件的检测是在互斥锁的保护下进行的。如果一个条件为假，一个线程自动阻塞，并释放等待状态改变的互斥锁。如果另一个线程改变了条件，它发信号给关联的条件变量，唤醒一个或多个等待它的线程，重新获得互斥锁，重新评价条件。如果两进程共享可读写的内存，条件变量可以被用来实现这两进程间的线程同步。
+        使用条件变量+互斥量
+            互斥量：保护一块共享数据
+            条件变量：引起一块共享数据
+                  生产者和消费者模型
+  （2）条件变量使用规范
+   头文件 #include<pthread.h>
+        等待条件代码
+            pthread_mutex_lock(&mutex);
+            while(条件为假)
+            pthread_cond_wait(&cond, &mutex);
+            修改条件
+            pthread_mutex_unlock(&mutex);
+        给条件发送信号代码
+            pthread_mutex_lock(&mutex);
+            设置条件为真
+            pthread_cond_signal(&cond);
+            pthread_mutex_unlock(&mutex);
+  （3）条件变量初始化
+        int pthread_cond_init(
+                    pthread_cond_t *restrict cond,
+                    const pthread_condattr_t *restrict attr
+                    );
+  （4）条件变量摧毁
+        int pthread_cond_destroy(pthread_cond_t* cond);
+  （5）条件变量等待
+        int pthread_cond_wait(pthread_cond_t* cond,
+                              pthread_mutex_t* mutex
+                              );
+        int pthread_cond_timewait(pthread_cond_t* cond,
+                                  pthread_mutex_t mytex,
+                                  const struct timespec* abstime
+                                 );
+        cond ---条件变量
+        mutex---互斥锁
+  （6）条件变量通知
+        int pthread_cond_signal(pthread_cond_t* cond);
+        int pthread_cond_broadcast(pthread_cond_t* cond);
+6 信号量
+  （1）头文件---semaphore.h
+  （2）信号量类型
+      sem_t sem;
+      加强版的互斥锁
+   (3) 主要函数
+       初始化信号量
+          sem_init(sem_t* sem, int pshared, unsigned int value);
+              pshared值    0---表示线程同步
+                           1---表示进程同步
+              value---最多有几个线程操作共享数据-5
+       销毁信号量
+          sem_destroy(sem_t* sem);
+        加锁
+          sem_wait(sem_t* sem);
+            调用一次相当于对sem做减1操作
+            如果sem值为0，线程会阻塞
+        尝试加锁
+          sem_trywait(sem_t* sem);
+            sem==0，加锁失败，不阻塞，直接返回
+        限时尝试加锁
+          sem_timedtime(sem_t* sem, XXXX);
+        解锁
+          sem_post(sem_t* sem);
+            对sem做加1操作
+
+
