@@ -27,6 +27,10 @@ int main(void)
 
   lfd = Socket(AF_INET, SOCK_STREAM, 0);
 
+  //端口复用
+  int opt = 1;
+  setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
   bzero(&serv_addr, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(SERV_PORT);
@@ -36,6 +40,7 @@ int main(void)
 
   Listen(lfd, 128);
 
+  printf("Accepting connections ...\n");
   while(1){
     clie_addr_len = sizeof(clie_addr);
     cfd = Accept(lfd, (struct sockaddr*)&clie_addr, &clie_addr_len);
