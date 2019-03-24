@@ -1,1 +1,183 @@
 网络编程
+1 协议的概念
+ （1）什么是协议
+    从应用的角度出发，协议可理解为规则，是数据传输和数据的解释的规则。
+    TCP协议注重数据的传输，http协议着重于数据的解释
+ （2）典型协议
+    传输层 常见协议有TCP/UDP协议
+    应用层 常见的协议有HTTP协议，FTP协议
+    网络层 常见协议有IP协议，ICMP协议，IGMP协议
+    网络接口层 常见协议有ARP协议，RARP协议
+    TCP传输控制协议（Transmission Control Protocol）是一种面向连接的/可靠
+的/基于字节流的传输层通信协议。
+    UDP用户数据报协议（User Datagram Protocol）是OSI参考模型中一种无连接的
+传输层协议，提供面向事务的简单不可靠信息传送服务。
+    HTTP超文本传输协议（Hyper Text Transfer Protocol）是互联网上应用最广泛
+的一种网络协议。
+    FTP文件传输协议（File Transfer Protocol）
+    IP协议（Internet Protocol）因特网互联协议
+    ICMP协议是Internet控制报文协议（Internet Control Message Protocol）它
+是TCP/IP协议族的一个子协议，用于在IP主机/路由器直接按传递控制信息。
+    IGMP协议是Internet组管理协议（Internet Group Management Protocol），是
+因特网协议家族中的一个组播协议。该协议运行在主机和组播路由器之间。
+    ARP协议是正向地址解析协议（Address Resolution Protocol），通过已知的IP
+，寻找对应主机的MAC地址。
+    RARP是反向地址转换协议，通过MAC地址确定IP地址。
+2 网络应用程序设计模式
+  （1）C/S模式
+      传统的网络应用设计模式，客户机（client）/服务器（server）模式。需要
+在通讯两端各自部署客户机和服务器来完成数据通信。
+  （2）B/S模式
+      浏览器（Browser）/服务器（Server）模式。只需在一端部署服务器，而另一端使用每台PC都默认配置的浏览器即可完成数据的传输。
+  （3）优缺点
+      C/S模式：客户端位于目标主机上可以保证性能，将数据缓存至客户端本地，
+从而提高数据传输效率。客户端和服务器程序有一个开发团队创作，所以他们之间所
+采用的协议相对灵活。但开发周期长，工作量将成倍提升。从用户角度出发，需要讲
+客户端安插至用户主机上，对用户主机的安全性构成威胁。
+      B/S模式：没有独立的客户端，使用标准浏览器作为客户端，其工作开发量较
+小。只需开发服务器端即可。采用浏览器显示数据，因此移植性非常好，不受平台限
+制。由于使用第三方浏览器，因此网络应用支持受限。没有客户端放到对方主机上，
+缓存数据不尽如人意，从而传输数据量受到限制。必须采用标准http协议进行通信，
+协议选择不灵活。
+3 Socket编程
+  （1）套接字概念
+      在Linux环境下，用于表示进程间网络通信的特殊文件类型。
+      IP地址：在网络环境中唯一标识一台主机
+      端口号：在主机中唯一标识一个进程
+      IP+port：在网络环境中唯一标识一个进程
+      IP地址+端口号port就对应一个socket
+      欲建立连接的两个进程各自有一个Socket来标识，那么这两个Socket组成的
+Socket pair就唯一标识一个连接。因此可以用socket来描述网络连接的一对一关系
+      
+      注意：socket成对出现
+            绑定IP+port
+            一个文件描述符指向两个缓冲区---一个读缓冲区、一个写缓冲区
+  （2）预备知识
+      a 网络字节序
+        大端：低地址存高位，高地址存低位
+        小端：低地址存低位，高地址存高位
+        计算机采用小端字节序存储数据，网络数据流采用大端字节序存储数据。为
+了使网络程序具有可移植性，可以使用库函数做网络字节序和主机字节序的转换。
+        #include<arpa/inet.h>
+        uint32_t htonl(uint32_t hostlong);
+        uint16_t htons(uint16_t hostshort);
+        uint32_t ntohl(uint32_t netlong);
+        uint16_t ntohs(uint16_t netshort);
+    h标识host，n标识network，l标识32位长整数，s标识16位短整数
+    如果主机是小端字节序，这些函数讲参数做相应的大小端转换然后返回，如果主
+机是大端字节序，这些函数不做转换，将参数原封不动低返回。
+      b IP地址转换函数
+        #include <arpa/inet.h>
+        int inet_pton(int af, const char* src, void* dst );
+        const char* inet_ntop(int af, const void* src, char *dst, socklen_
+t size);
+        支持IPv4和IPv6    可重入函数
+        其中inet_pton和inet_ntop不仅可以转换IPv4的in_addr，还可以转换IPv6
+的in6_addr。因此函数接口是void* addrptr。
+      c sockaddr数据结构
+        struct sockaddr_in addr;
+        addr.sin_family = AF_INET/AFINET6;
+        addr.sin_port = htons/ntohs;
+        addr.sin_addr.s_addr = htonl/ntosl/inet_pton/inet_ntop;
+  （3）网络套接字函数
+      a Socket函数
+        #include <sys/types.h>
+        #include <sys/socket.h>
+        int socket(int domain, int type, int protocol);
+ 参数：
+domain:
+AF_INET 这是大多数用来产生socket的协议，使用TCP或UDP来传输，用IPv4的地址。
+AF_INET6与上面类似，不过是用IPv6的地址。
+AF_UNIX 本地协议，使用unix和Linux系统上，一般都是当客户端和服务器在同一台
+机器上的时候使用。
+type：
+SOCK_STREAM 这个协议是按照顺序的、可靠地、数据完整的基于字节流的连接。这是
+是一个使用最多的Socket类型，这个Socket是使用TCP来进行传输。
+SOCK_DGRAM 这个协议是无连接的、固定长度的传输调用。该协议是不可靠的，使用
+UDP来进行它的连接。
+protocol：
+传0表示使用默认协议
+返回值：
+成功返回指向新创建的socket的文件描述符；失败返回-1，设置errno
+      b bind函数
+        #include <sys/types.h>
+        #include <sys/socket.h>
+        int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+    参数：
+    sockfd：socket文件描述符
+    addr：构造出IP地址加端口号
+    addrlen：sizeof(addr)长度
+    返回值：
+    成功返回0，失败返回-1，设置errno
+bind()函数的作用是讲参数sockfd和addr绑定在一起，使sockfd这个用于网络通讯的
+文件描述符监听addr所描述的地址和端口号。
+      c listen函数
+        #include <sys/types.h>
+        #include <sys/socket.h>
+        int listen(int sockfd, int backlog);
+    参数：
+    sockfd：sockfd文件描述符
+    backlog：排队建立3次握手队列和刚刚建立3次握手队列的连接数和
+listen()声明sockfd处于监听状态，并且最多允许有backlog个客户端处于连接状态
+，如果接收到更多的连接请求就忽略。listen()成功返回0，失败返回-1.
+      d accept函数
+        #include <sys/types.h>
+        #include <sys/socket.h>
+        int accept(int sockfd, struct sockaddr* addr, socklen_t *addrlen);
+    参数：
+    sockfd：Socket文件描述符
+    addr：传出参数，返回连接客户端地址信息，含IP地址和端口号
+    addrlen：传入传出参数（值-结果），传入sizeof(addr)大小，函数返回时返回
+真正接收到地址结构体的大小
+    返回值：
+      成功返回一个新的Socket文件描述符，用于和客户端通信，失败返回-1，设置
+errno
+      e connect函数
+        #include <sys/types.h>
+        #include <sys/socket.h>
+        int connect(int sockfd, const struct sockaddr *addr, socklen_t addlen);
+    参数：
+    sockfd:socket文件描述符
+    addr：传入参数，指定服务器端地址信息，含IP地址和端口号
+    addrlen：传入参数，传入sizeof(addr)大小
+    返回值：
+    成功返回0，失败返回-1，设置errno
+    客户端需要调用connect()连接服务器，connect和bind的参数形式一致，区别在
+于bind的参数是自己的地址，而connect的参数是对方的地址。
+  （4）错误处理
+      read返回值：
+          1.>0 实际读到的字节数 buf=1024    ==buf 1024   <buf 56
+          2.=0 数据读完（读到文件、管道、socket末尾---对端关闭）
+          3.-1 异常
+              errno==EINTR被信号中断 重启/quit
+              errno==EAGAIN(EWOULDBLOCK)非阻塞方式读，并且没有数据
+              其他值 出现错误---perror exit
+4 TCP协议
+  （1）TCP通信时序
+      a 客户端服务器建立连接（三次握手）
+        1 客户端发送一个带SYN标志的TCP报文到服务器。
+        2 服务器端回应客户端，同时带ACK标志和SYN标志。它表示对刚才客户端
+SYN的回应；同时又发送SYN给客户端，询问客户端是否准备好进行数据通讯。
+        3 客户端必须再次回应服务器端一个ACK报文。
+      b 四次挥手
+        由于TCP连接是全双工的，因此每个方向都必须单独进行关闭。这原则是当
+一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接。收到一个FIN
+只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍能发送数据。受限进行关闭的一方将执行主动关闭，而另一方执行被动关闭。
+        1 若客户端先发送FIN表示关闭连接的请求，ACK表示对上次接收数据的确认
+        2 应答客户端的关闭连接请求ACK（客户端处于半关闭状态）
+        3 服务器端发送FIN（与客户端发送的ACK一致），ACK
+        4 客户端应答服务器关闭连接请求，ACK（服务器FIN值加1）
+  （2）滑动窗口（TCP流量控制）
+      由滑动窗口原理可知，TCP协议是面向流的协议，接收端可以一次提走滑动窗
+口大小个字节的数据，而UDP是面向消息的协议，每个UDP段都是一条消息，应用程序
+必须以消息为单位提取数据，不能一次提取任意字节的数据。
+
+
+
+
+
+
+
+
+
+
