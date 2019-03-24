@@ -37,7 +37,6 @@ int main(void)
     n = read(cfd, buf, sizeof(buf));
     write(STDOUT_FILENO, buf, n);
   }
-
   //关闭
   close(cfd);
 
