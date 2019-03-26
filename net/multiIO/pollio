@@ -1,0 +1,20 @@
+多路IO转接服务器之poll
+poll
+#include <poll.h>
+int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+struct pollfd{
+    int   fd; //文件描述符
+    short events; //监控的事件
+    short revents;  //监控事件中满足条件返回的事件
+};
+参数：
+    fds：数组的首地址
+      POLLIN  普通或带外有限数据可读
+      POLLOUT 普通或外带数据可写
+      POLLERR 发生错误
+    nfds：监控数组中有多少文件描述符需要被监控
+    timeout：毫秒级等待
+      -1 阻塞等，#define INFTIM -1
+      0  立即返回，不阻塞进程
+      >0 等待指定毫秒数，如当前系统时间精度不够毫秒，向上取值
+

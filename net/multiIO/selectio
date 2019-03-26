@@ -1,0 +1,40 @@
+多路IO转接服务器之select                                                  
+select                                                                    
+1 select能监听的文件描述符个数受限于FD_SETSIZE,一般为1024，单纯改变进程打 开的文件描述符个数并不能改变select监听文件个数。                          
+2 解决1024以下客户端使用select是很合适的，但如果连接客户端过多，select采用
+的是轮询模型，会大大降低服务器响应效率，不应在select上投入更多精力。      
+#include <sys/select.h>                                                   #include <sys/time.h>                                                     
+#include <sys/types.h>                                                    
+#include <unistd.h>                                                       
+int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+ struct timeval *timeout);
+参数：                                                                    
+  nfds：所监听的所有文件描述符中，最大的文件描述符+1
+  readfds:所监听的文件描述符可读事件                                      
+  writefds:所监听的文件描述符可写事件                                     
+  exceptfds:所监听的文件描述符异常事件
+  timeout:定时阻塞监控时间，3种情况                                       
+         a NULL，永远等下去                                                        b 设置timeval，等待固定时间
+         c 设置timeval里事件均为0，检查描述字后立即返回，轮询            
+  struct timeval{                                                         
+        long tv_sec;  //秒
+        long tv_usec; //微秒                                              
+    };
+     void FD_ZERO(fd_set *set);  //将文件描述符里set清空 0
+     void FD_CLR(int fd, fd_set *set);   //将fd从set中清楚出去           
+     void FD_ISSET(int fd, fd_set *set); //判断fd是否在集合中
+     void FD_SET(int fd, fd_set *set);   //将fd设置到set集合中去
+   返回值：                                                              
+     成功：所监听的所有的监听集合中，满足条件的总数
+     失败：
+流程：
+     fd_set readfds;
+     FD_ZERO(&readfds);                                             
+     FD_SET(fd1, &readfds);
+     FD_SET(fd2, &readfds);
+     FD_SET(fd3, &readfds);                                              
+     select();//返回所监听的所有的监听集合中，满足条件的总数
+     for();
+     FD_ISSET(fd1, &readfds);//返回值为1时，满足      
+
+
