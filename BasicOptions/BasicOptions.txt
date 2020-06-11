@@ -52,5 +52,30 @@
 			ftp + serverIP
 			用户名： anonymous
 			密码： 直接回车
+
+			不允许匿名用户在任意目录直接切换
+			只能在一个指定的目录范围内工作
+			需要在ftp服务器上创建一个匿名用户的目录 -- 匿名用户的根目录
 		3）lftp客户端访问ftp服务器
+3.nfs服务器的使用
+	net file system网络文件系统，它允许网络中的计算机之间通过TCP/IP网络共享资源
+	安装 sudo apt-get install nfs-kernel-server
+	创建一个欲共享出去的目录 如：/home/xxx/xxx
+	打开配置文件：sudo vim /etc/exports
+	（1）服务器端
+		1）创建共享目录
+			mkdir dir
+		2）修改配置文件
+			/etc/exports
+		3）重启服务
+			sudo service nfs-kernel-server restart
+	（2）客户端
+		1）挂载服务器共享目录
+			mount serverIP:sharedir /mnt
+4.ssh服务器
+	(1)服务器端
+		安装ssh： sudo apt-get install openssh-server
+	(2)远程登录 
+		ssh 用户名@IP    确认连接的时候一定要写yes/no
+	(3)退出登录  logout
 
