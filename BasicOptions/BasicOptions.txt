@@ -78,4 +78,37 @@
 	(2)远程登录 
 		ssh 用户名@IP    确认连接的时候一定要写yes/no
 	(3)退出登录  logout
-
+5.静态库的制作
+	（1）命名规则
+		1）lib + 库的名字 + .a
+		2) 例如：libMytest.a
+	（2）制作步骤
+		1)生成对应的.o文件   
+			gcc -c *.c
+		2)将生成的.o文件打包  
+			ar rcs 静态库的名字（libMytest.a） 生成的所有.o文件
+		3)使用
+			gcc main.c (库) -LlibPath -llinname -o app -Iinclude
+			main.c -L -l
+	（3）发布和使用静态库
+		1）发布静态库
+		2）头文件
+	（4）优缺点
+6.共享库的制作
+	（1）命名规则
+		lib名字.so   libMyshare.so
+	（2）制作步骤	
+		1）生成位置无关的.o文件
+			gcc -fPIC -c *.c -I 头文件
+		2)将.o打包成.so文件
+			gcc -shared -o libMyshare.so *.o -I 头文件
+			ldd 共享库名字      查看所有依赖的共享库
+	（3）发布和使用共享库
+		gcc main.c -Llib -lMyshare -I头文件 -o app
+	（4）解决程序执行时动态库无法加载的问题
+		1)临时设置的方法：
+			export LD_LIBRARY_PATH=路径
+		2）永久设置的方法：
+			a.找到动态链接库的配置文件：/etc/ld.so.conf
+			b.在该文件中添加动态库的目录（绝对路径）
+			c.更新：sudo ldconfig -v
