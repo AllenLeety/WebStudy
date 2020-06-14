@@ -152,4 +152,5 @@
 		取消追踪变量：undisplay 编号
 		获取编号：info display
 	（11）退出gdb调试：quit
+8.makefile的编写
 
